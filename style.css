@@ -1,0 +1,112 @@
+body {
+    background-color: black;
+    height: 600px;
+}
+
+#world {
+    background-color: bisque;
+    width: 700px;
+    height: 400px;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: table;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.row {
+    margin: 0;
+    padding: 0;
+    height: 50px;
+    display: flex;
+}
+
+.cell {
+    background-color: black;
+    height: 50px;
+    width: 50px;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.wall {
+    background-image: url("images/wall.png");
+}
+
+.corner {
+    background-image: url("images/corner.png");
+}
+
+.end {
+    background-image: url("images/end.png");
+}
+
+.t {
+    background-image: url("images/t.png");
+}
+
+.r90 {
+    transform: rotate(90deg);
+}
+
+.r180 {
+    transform: rotate(180deg);
+}
+
+.r270 {
+    transform: rotate(270deg);
+}
+
+#player1, #player2, #ghost {
+    position: fixed;
+    top: 50px;
+    left: 650px;
+}
+
+#player1 {
+    background-image: url("images/pacman1.png");
+}
+
+#player2 {
+    background-image: url("images/ms-pacman1.png");
+}
+
+#ghost {
+    background-image: url("images/ghost.png");
+}
+
+.point-small {
+    background-image: url("images/point-small.png");
+}
+
+.point-big {
+    background-image: url("images/point-big.png");
+}
+
+.cherry {
+    background-image: url("images/cherry.png");
+}
+
+#stats {
+    color: white;
+    width: 700px;
+    height: 50px;
+    top: 425px;
+    left: 25px;
+    position: fixed;
+    display: table;
+    
+}
+
+#score, #lives{
+    display: inline-block;
+    width: 350px;
+}
+
+#lives {
+    vertical-align: top;
+    text-align: right;
+}
