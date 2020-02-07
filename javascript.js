@@ -1,5 +1,6 @@
 var score = 0
-var lives = 5
+var lives = 3
+var speed = 5
 var worldDict={0:"blank",1:"wall",2:"point-small",3:"point-big",4:"cherry"}
 var world = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -13,61 +14,126 @@ var world = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ]
 var rows = document.getElementsByClassName("row")
+var collisionCoords={x:null,y:null}
+var entities = [
+    {id:"player1",x:13,y:1,top:50,left:650,anim:1,image:"pacman"},
+    {id:"player2",x:1,y:1,top:50,left:50,anim:1,image:"ms-pacman"},
+    {id:"ghost",x:7,y:7,top:350,left:350,moving:false}
+]
 
-var player1 = {x:13,y:1}
-var player2 = {x:1,y:1}
-var ghost = {x:8,y:7}
+function drawEntity(entity){
+    document.getElementById(entity.id).style.top = entity.top + "px"
+    document.getElementById(entity.id).style.left = entity.left + "px"
+}
 
-function drawPlayer1(){
-    document.getElementById("player1").style.top = player1.y * 50 + "px"
-    document.getElementById("player1").style.left = player1.x * 50 + "px"
+function moveEntity(entity){
+    switch(document.getElementById(entity.id).className){
+        case "cell":
+            entity.y = Math.round(entity.top/50)
+            entity.top = entity.y*50
+            if(world[entity.y][entity.x+1]!=1)
+                entity.left+=speed
+            entity.x = Math.floor(entity.left/50)
+            break
+        case "cell r90":
+            entity.x = Math.round(entity.left/50)
+            entity.left = entity.x*50
+            if(world[entity.y+1][entity.x]!=1)
+                entity.top+=speed
+            entity.y = Math.floor(entity.top/50)
+            break
+        case "cell r180":
+            entity.y = Math.round(entity.top/50)
+            entity.top = entity.y*50
+            if(world[entity.y][entity.x-1]!=1)
+                entity.left-=speed
+            entity.x = Math.floor((entity.left-1)/50)+1
+            break
+        case "cell r270":
+            entity.x = Math.round(entity.left/50)
+            entity.left = entity.x*50
+            if(world[entity.y-1][entity.x]!=1)
+                entity.top-=speed
+            entity.y = Math.floor((entity.top-1)/50)+1
+            break
+    }
+    drawEntity(entity)
+    checkScore(entity)
 }
-function drawPlayer2(){
-    document.getElementById("player2").style.top = player2.y * 50 + "px"
-    document.getElementById("player2").style.left = player2.x * 50 + "px"
-}
-function drawGhost(){
-    document.getElementById("ghost").style.top = ghost.y * 50 + "px"
-    document.getElementById("ghost").style.left = ghost.x * 50 + "px"
-}
-drawPlayer1()
-drawPlayer2()
-drawGhost()
+
+setInterval(moveEntity,20,entities[0])
+setInterval(moveEntity,20,entities[1])
 
 function moveGhost(){
-    while(true){
+    while(true && !entities[2].moving){
         var random = Math.floor(Math.random() * 4)
         if(random == 0){
-            if(world[ghost.y][ghost.x-1] != 1){
-                ghost.x--
+            if(world[entities[2].y][entities[2].x-1] != 1){
+                entities[2].x--
+                entities[2].moving = true
+                var moving = setInterval(function(){
+                    entities[2].left-=speed
+                    drawEntity(entities[2])
+                    if(entities[2].left/50==entities[2].x){
+                        clearInterval(moving)
+                        entities[2].moving = false
+                    }
+                },20)
                 break
             }
         }else if(random == 1){
-            if(world[ghost.y][ghost.x+1] != 1){
-                ghost.x++
+            if(world[entities[2].y][entities[2].x+1] != 1){
+                entities[2].x++
+                entities[2].moving = true
+                var moving = setInterval(function(){
+                    entities[2].left+=speed
+                    drawEntity(entities[2])
+                    if(entities[2].left/50==entities[2].x){
+                        clearInterval(moving)
+                        entities[2].moving = false
+                    }
+                },20)
                 break
             }
         }else if(random == 2){
-            if(world[ghost.y+1][ghost.x] != 1){
-                ghost.y++
+            if(world[entities[2].y+1][entities[2].x] != 1){
+                entities[2].y++
+                entities[2].moving = true
+                var moving = setInterval(function(){
+                    entities[2].top+=speed
+                    drawEntity(entities[2])
+                    if(entities[2].top/50==entities[2].y){
+                        clearInterval(moving)
+                        entities[2].moving = false
+                    }
+                },20)
                 break
             }
+
         }else if(random == 3){
-            if(world[ghost.y-1][ghost.x] != 1){
-                ghost.y--
+            if(world[entities[2].y-1][entities[2].x] != 1){
+                entities[2].y--
+                entities[2].moving = true
+                var moving = setInterval(function(){
+                    entities[2].top-=speed
+                    drawEntity(entities[2])
+                    if(entities[2].top/50==entities[2].y){
+                        clearInterval(moving)
+                        entities[2].moving = false
+                    }
+                },20)
                 break;
             }
         }
     }
-    drawGhost()
-    checkGhost(player1)
-    checkGhost(player2)
-    setTimeout(moveGhost,500)
 }
-moveGhost()
+drawEntity(entities[2])
+setInterval(moveGhost,200)
 
 function checkGhost(player){
-    if(ghost.x == player.x && ghost.y == player.y){
+    if(entities[2].x == player.x && entities[2].y == player.y && collisionCoords.x!=player.x && collisionCoords.y!=player.y){
+        collisionCoords.x = player.x
+        collisionCoords.y = player.y
         lives--
         if(lives>0){
             var hearts = ""
@@ -83,16 +149,26 @@ function checkGhost(player){
     }
 }
 
+setInterval(checkGhost,20,entities[0])
+setInterval(checkGhost,20,entities[1])
+
 function checkScore(player){
     if(world[player.y][player.x] != 0){
         switch(world[player.y][player.x]){
-            case 2:score += 5;break;
-            case 3:score += 10;break;
-            case 4:score += 50;break;
+            case 2:
+                score += 5
+                clearCell(player.x,player.y)
+                break
+            case 3:
+                score += 10
+                clearCell(player.x,player.y)
+                break
+            case 4:
+                score += 50
+                clearCell(player.x,player.y)
+                break
         }
         document.getElementById("score").innerHTML = "SCORE: "+score
-        world[player.y][player.x] = 0
-        rows[player.y].children[player.x].className = "cell"
         if(document.getElementsByClassName("point-small").length==0 && document.getElementsByClassName("point-big").length==0){
             document.getElementById("lives").innerHTML = "YOU WIN!"
             document.getElementById("player1").style.display = "none"
@@ -101,99 +177,56 @@ function checkScore(player){
     }
 }
 
-var p1anim = 1
-function animatePlayer1(){
-    p1anim++
-    if(p1anim>=4)
-        p1anim=1
-    document.getElementById("player1").style.backgroundImage = "url('images/pacman"+p1anim+".png')"
-    setTimeout(animatePlayer1,100)
+function clearCell(x,y){
+    world[y][x] = 0
+    rows[y].children[x].className = "cell"
 }
-animatePlayer1()
-var p2anim = 1
-function animatePlayer2(){
-    p2anim++
-    if(p2anim>=4)
-        p2anim=1
-    document.getElementById("player2").style.backgroundImage = "url('images/ms-pacman"+p2anim+".png')"
-    setTimeout(animatePlayer2,100)
+
+function animatePlayer(player){
+    player.anim++
+    if(player.anim>=4)
+        player.anim=1
+    document.getElementById(player.id).style.backgroundImage = "url('images/"+player.image+player.anim+".png')"
 }
-animatePlayer2()
+
+setInterval(animatePlayer,100,entities[0])
+setInterval(animatePlayer,100,entities[1])
 
 function spawnCherry(){
-    var time = Math.floor((Math.random()*10)+10)
-    setTimeout(time*1000)
     if(world[4][7] == 0){
         world[4][7] = 4
         rows[4].children[7].className="cell cherry"
     }
-    setTimeout(spawnCherry,Math.floor((Math.random()*10)+1)*1000)
+    clearInterval(cherryThread)
+    cherryThread = setInterval(spawnCherry,(Math.random()*5000)+5000)
 }
-spawnCherry()
+var cherryThread = setInterval(spawnCherry,(Math.random()*5000)+5000)
 
 document.onkeydown = function(e){
     if(lives > 0){
         if(e.keyCode == 37){//left
             document.getElementById("player1").className="cell r180"
-            moveLeft(player1)
         }
         if(e.keyCode == 39){//right
             document.getElementById("player1").className="cell"
-            moveRight(player1)
         }
         if(e.keyCode == 38){//up
             document.getElementById("player1").className="cell r270"
-            moveUp(player1)
         }
         if(e.keyCode == 40){//down
             document.getElementById("player1").className="cell r90"
-            moveDown(player1)
         }
         if(e.keyCode == 65){//left
             document.getElementById("player2").className="cell r180"
-            moveLeft(player2)
         }
         if(e.keyCode == 68){//right
             document.getElementById("player2").className="cell"
-            moveRight(player2)
         }
         if(e.keyCode == 87){//up
             document.getElementById("player2").className="cell r270"
-            moveUp(player2)
         }
         if(e.keyCode == 83){//down
             document.getElementById("player2").className="cell r90"
-            moveDown(player2)
         }
-        drawPlayer1()
-        drawPlayer2()
-        checkGhost(player1)
-        checkGhost(player2)
-    }
-    checkScore(player1)
-    checkScore(player2)
-}
-
-function moveLeft(player){
-    if(world[player.y][player.x-1] != 1){
-        player.x--
-    }
-}
-
-function moveRight(player){
-    if(world[player.y][player.x+1] != 1){
-        player.x++
-    }
-}
-
-function moveUp(player){
-    if(world[player.y-1][player.x] != 1){
-        player.y--
-    }
-}
-
-function moveDown(player){
-    if(world[player.y+1][player.x] != 1){
-        player.y++
     }
 }
